@@ -2,11 +2,15 @@ from langchain_core.prompts import ChatPromptTemplate
 
 prompt_template = ChatPromptTemplate.from_template(
     """
-    Answer the question in max 20 words.
-    The word count limit of 20 characters is necessarily enforced.
+    You are an assistant that summarizes information concisely.
+    Answer the question in 20 words or fewer, focusing on relevance and clarity.
 
-    <Question>
+    If the answer from vector store is not relevant, then answer the question from your own knowledge.
+
+    Question:
     {question}
-    </Question>
+
+    Answer:
     """
 )
+
