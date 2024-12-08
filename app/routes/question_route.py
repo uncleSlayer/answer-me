@@ -7,6 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableSequence
 from app.ai import chroma_vector_store
 
+
 class Ask_Question(BaseModel):
     question: str
 
@@ -28,17 +29,33 @@ async def ask_question(request_body: Ask_Question):
     return {"answer": answer}
 
 
-
 @question_router.post("/ask-rag")
 async def ask_question_rag(request_body: Ask_Question):
     question = request_body.question
 
-    retriver = chroma_vector_store.as_retriever(search_kwargs={"k": 5})
+    retriver = chroma_vector_store.as_retriever(
+        search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.3, "k": 3}
+    )
 
-    chain = retriver | question_prompt_template | openAiClient | StrOutputParser()
+    retrived_documents = retriver.invoke(question)
+    formatted_docs = [doc.page_content for doc in retrived_documents]
 
-    answer = chain.invoke(question)
+    if len(formatted_docs) > 0: 
 
-    return {"answer": answer}
+        chain = question_prompt_template | openAiClient | StrOutputParser()
 
-    # we will use rag to get the answer
+        try:
+            answer = chain.invoke({
+                "question": question, 
+                "documents_page_content": formatted_docs[0]
+            })
+            
+            return {"answer": answer}
+
+        except KeyError as e:
+            
+            return {"error": str(e)}
+    
+    else:
+        print("No document found")
+        return {"error": "No relevant document found"}

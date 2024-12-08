@@ -1,16 +1,12 @@
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import PromptTemplate
 
-prompt_template = ChatPromptTemplate.from_template(
-    """
-    You are an assistant that summarizes information concisely.
-    Answer the question in 20 words or fewer, focusing on relevance and clarity.
+prompt_template = PromptTemplate(
+    input_variables=["question", "documents_page_content"],
+    template="""
+        Use the following documents to answer the question. If the documents do not contain enough information, use the documents but add your own knowledge to write a comprehensive answer.
 
-    If the answer from vector store is not relevant, then answer the question from your own knowledge.
-
-    Question:
-    {question}
-
-    Answer:
-    """
+        Documents: {documents_page_content}
+        Question: {question}
+        Answer:
+    """,
 )
-
